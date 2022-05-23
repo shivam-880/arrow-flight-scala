@@ -7,10 +7,10 @@ lazy val root = (project in file("."))
   .settings(
     name := "arrow-flight-scala-poc"
   )
-resolvers ++= Seq (
-  Resolver.mavenLocal
-)
 
 libraryDependencies ++= Seq(
-  "org.apache.arrow" % "flight-core" % "8.0.0" classifier osDetectorClassifier.value
+  "io.netty" % "netty-transport-native-unix-common" % "4.1.72.Final" % "compile" classifier osDetectorClassifier.value,
+  "org.apache.arrow" % "flight-core" % "8.0.0"
 )
+
+enablePlugins(OsDetectorPlugin)
