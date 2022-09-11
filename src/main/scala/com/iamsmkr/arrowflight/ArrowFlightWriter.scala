@@ -6,7 +6,7 @@ import org.apache.arrow.vector._
 import org.apache.arrow.vector.types.pojo._
 import scala.jdk.CollectionConverters._
 
-class ArrowFlightWriter(
+case class ArrowFlightWriter(
                          interface: String,
                          port: Int,
                          allocator: BufferAllocator
@@ -18,12 +18,15 @@ class ArrowFlightWriter(
   private val vectorSchemaRoot = VectorSchemaRoot.create(schema, allocator)
   private val listener = flightClient.startPut(FlightDescriptor.path("profiles"), vectorSchemaRoot, new AsyncPutListener())
   private val varCharVector = vectorSchemaRoot.getVector("name").asInstanceOf[VarCharVector]
+  private var lastRow = -1
 
   def addToBatch(row: Int, message: String): Unit = {
     varCharVector.setSafe(row, message.getBytes)
+    lastRow = row
   }
 
   def sendBatch(): Unit = {
+    vectorSchemaRoot.setRowCount(lastRow)
     listener.putNext()
   }
 

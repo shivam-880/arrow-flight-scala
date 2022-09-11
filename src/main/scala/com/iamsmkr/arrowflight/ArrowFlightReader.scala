@@ -4,7 +4,7 @@ import org.apache.arrow.flight._
 import org.apache.arrow.memory.BufferAllocator
 import java.nio.charset.StandardCharsets
 
-class ArrowFlightReader(
+case class ArrowFlightReader(
                          interface: String,
                          port: Int,
                          allocator: BufferAllocator
@@ -12,17 +12,18 @@ class ArrowFlightReader(
 
   private val location: Location = Location.forGrpcInsecure(interface, port)
   private val flightClient = FlightClient.builder(allocator, location).build
-  private val busyWaitInMilliSeconds = 200
 
-  while (true) {
-    try {
-      Thread.sleep(busyWaitInMilliSeconds)
-    } catch {
-      case e: InterruptedException =>
-        e.printStackTrace()
+  def readMessages(busyWaitInMilliSeconds: Long): Unit = {
+    while (true) {
+      try {
+        Thread.sleep(busyWaitInMilliSeconds)
+      } catch {
+        case e: InterruptedException =>
+          e.printStackTrace()
+      }
+
+      readMessages()
     }
-
-    readMessages()
   }
 
   def readMessages(): Unit = {
