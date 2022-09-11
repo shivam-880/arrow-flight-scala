@@ -1,5 +1,16 @@
 package com.iamsmkr.arrowflight
 
-class ArrowFlightDataset {
+import org.apache.arrow.util.AutoCloseables
+import org.apache.arrow.vector.ipc.message.ArrowRecordBatch
+import org.apache.arrow.vector.types.pojo.Schema
 
+import java.util
+
+private[arrowflight] case class ArrowFlightDataset(
+                                                    batches: util.List[ArrowRecordBatch],
+                                                    schema: Schema,
+                                                    rows: Long
+                                                  ) extends AutoCloseable {
+
+  override def close(): Unit = AutoCloseables.close(batches)
 }
