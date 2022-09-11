@@ -5,10 +5,10 @@ import org.apache.arrow.memory.BufferAllocator
 import java.nio.charset.StandardCharsets
 
 case class ArrowFlightReader(
-                         interface: String,
-                         port: Int,
-                         allocator: BufferAllocator
-                       ) {
+                              interface: String,
+                              port: Int,
+                              allocator: BufferAllocator
+                            ) {
 
   private val location: Location = Location.forGrpcInsecure(interface, port)
   private val flightClient = FlightClient.builder(allocator, location).build
@@ -28,9 +28,10 @@ case class ArrowFlightReader(
 
   def readMessages(): Unit = {
     val flightInfoIter = flightClient.listFlights(Criteria.ALL)
-//    if (!flightInfoIter.iterator().hasNext()) throw new Exception("No data found against any endpoint!")
+    // if (!flightInfoIter.iterator().hasNext()) throw new Exception("No data found against any endpoint!")
 
     flightInfoIter.forEach { flightInfo =>
+      val endPoint = flightInfo.getDescriptor.toString
       val endPointAsByteStream = flightInfo.getDescriptor.getPath.get(0).getBytes(StandardCharsets.UTF_8)
       val flightStream = flightClient.getStream(new Ticket(endPointAsByteStream))
 
@@ -40,7 +41,14 @@ case class ArrowFlightReader(
       while (flightStream.next()) {
         batch = batch + 1
         println("Client Received batch #" + batch + ", Data:")
-        print(vectorSchemaRootReceived.contentToTSVString())
+        println(vectorSchemaRootReceived.contentToTSVString())
+      }
+
+      // Delete already read stream
+      val deleteActionResult = flightClient.doAction(new Action("DELETE", endPointAsByteStream))
+      while (deleteActionResult.hasNext) {
+        val result = deleteActionResult.next()
+        // println("Deleting endpoint {} read already at location {}: {}", endPoint, location, new String(result.getBody, StandardCharsets.UTF_8))
       }
     }
 

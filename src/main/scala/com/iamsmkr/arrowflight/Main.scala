@@ -18,20 +18,22 @@ object Main extends App {
   private val reader = ArrowFlightReader(interface, port, allocator)
   private val writer = ArrowFlightWriter(interface, port, allocator)
 
-//  Future(reader.readMessages(1))
+  Future(reader.readMessages(1))
 
   writer.addToBatch(0, "Shivam")
   writer.addToBatch(1, "Shyam")
   writer.addToBatch(2, "Srinivas")
   writer.sendBatch()
   writer.completeSend()
-  reader.readMessages()
+//  reader.readMessages()
+
+  Thread.sleep(1000)
 
   writer.addToBatch(0, "Neha")
   writer.addToBatch(1, "Naveen")
   writer.addToBatch(2, "Nisha")
   writer.sendBatch()
   writer.completeSend()
-  reader.readMessages()
+//  reader.readMessages()
 
 }
