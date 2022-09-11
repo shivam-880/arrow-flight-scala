@@ -25,7 +25,6 @@ object Main extends App {
   writer.addToBatch(2, "Srinivas")
   writer.sendBatch()
   writer.completeSend()
-//  reader.readMessages()
 
   Thread.sleep(1000)
 
@@ -34,6 +33,5 @@ object Main extends App {
   writer.addToBatch(2, "Nisha")
   writer.sendBatch()
   writer.completeSend()
-//  reader.readMessages()
 
 }
