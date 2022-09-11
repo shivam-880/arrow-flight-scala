@@ -16,23 +16,26 @@ case class ArrowFlightWriter(
   private val flightClient = FlightClient.builder(allocator, location).build()
   private val schema = new Schema(List(new Field("name", FieldType.nullable(new ArrowType.Utf8()), null)).asJava)
   private val vectorSchemaRoot = VectorSchemaRoot.create(schema, allocator)
-  private val listener = flightClient.startPut(FlightDescriptor.path("profiles"), vectorSchemaRoot, new AsyncPutListener())
+  private var listener = flightClient.startPut(FlightDescriptor.path("profiles"), vectorSchemaRoot, new AsyncPutListener())
   private val varCharVector = vectorSchemaRoot.getVector("name").asInstanceOf[VarCharVector]
   private var lastRow = -1
 
   def addToBatch(row: Int, message: String): Unit = {
     varCharVector.setSafe(row, message.getBytes)
     lastRow = row
+    if (listener == null) listener = flightClient.startPut(FlightDescriptor.path("profiles"), vectorSchemaRoot, new AsyncPutListener())
   }
 
   def sendBatch(): Unit = {
-    vectorSchemaRoot.setRowCount(lastRow)
+    vectorSchemaRoot.setRowCount(lastRow + 1)
     listener.putNext()
+    lastRow = -1
   }
 
   def completeSend(): Unit = {
     listener.completed()
     listener.getResult()
+    listener = null
   }
 
   def close(): Unit = {

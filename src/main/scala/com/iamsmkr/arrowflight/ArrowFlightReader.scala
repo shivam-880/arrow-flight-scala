@@ -27,16 +27,22 @@ case class ArrowFlightReader(
   }
 
   def readMessages(): Unit = {
-    val flightStream = flightClient.getStream(new Ticket(
-      FlightDescriptor.path("profiles").getPath.get(0).getBytes(StandardCharsets.UTF_8)))
+    val flightInfoIter = flightClient.listFlights(Criteria.ALL)
+//    if (!flightInfoIter.iterator().hasNext()) throw new Exception("No data found against any endpoint!")
 
-    var batch = 0
-    val vectorSchemaRootReceived = flightStream.getRoot
+    flightInfoIter.forEach { flightInfo =>
+      val endPointAsByteStream = flightInfo.getDescriptor.getPath.get(0).getBytes(StandardCharsets.UTF_8)
+      val flightStream = flightClient.getStream(new Ticket(endPointAsByteStream))
 
-    while (flightStream.next()) {
-      batch = batch + 1
-      println("Client Received batch #" + batch + ", Data:")
-      print(vectorSchemaRootReceived.contentToTSVString())
+      var batch = 0
+      val vectorSchemaRootReceived = flightStream.getRoot
+
+      while (flightStream.next()) {
+        batch = batch + 1
+        println("Client Received batch #" + batch + ", Data:")
+        print(vectorSchemaRootReceived.contentToTSVString())
+      }
     }
+
   }
 }
