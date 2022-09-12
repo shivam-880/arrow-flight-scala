@@ -23,7 +23,7 @@ object Main extends App {
   for (i <- 0 until 2)
     writer.addToBatch(i, System.currentTimeMillis().toString)
   writer.sendBatch()
-  writer.completeSend()
+  writer.completeSend()   // Not needed here if you're sending another batch to the same end point
 
   for (i <- 0 until 4) {
     Thread.sleep(1000)
