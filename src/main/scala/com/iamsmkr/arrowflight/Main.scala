@@ -20,18 +20,16 @@ object Main extends App {
 
   Future(reader.readMessages(1))
 
-  writer.addToBatch(0, "Shivam")
-  writer.addToBatch(1, "Shyam")
-  writer.addToBatch(2, "Srinivas")
+  for (i <- 0 until 2)
+    writer.addToBatch(i, System.currentTimeMillis().toString)
   writer.sendBatch()
   writer.completeSend()
 
-  Thread.sleep(1000)
-
-  writer.addToBatch(0, "Neha")
-  writer.addToBatch(1, "Naveen")
-  writer.addToBatch(2, "Nisha")
+  for (i <- 0 until 4) {
+    Thread.sleep(1000)
+    println(s"Adding to batch")
+    writer.addToBatch(i, System.currentTimeMillis().toString)
+  }
   writer.sendBatch()
   writer.completeSend()
-
 }

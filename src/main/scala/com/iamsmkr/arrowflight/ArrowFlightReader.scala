@@ -2,7 +2,9 @@ package com.iamsmkr.arrowflight
 
 import org.apache.arrow.flight._
 import org.apache.arrow.memory.BufferAllocator
+
 import java.nio.charset.StandardCharsets
+import scala.util.control.NonFatal
 
 case class ArrowFlightReader(
                               interface: String,
@@ -15,42 +17,33 @@ case class ArrowFlightReader(
 
   def readMessages(busyWaitInMilliSeconds: Long): Unit = {
     while (true) {
-      try {
-        Thread.sleep(busyWaitInMilliSeconds)
-      } catch {
+      try Thread.sleep(busyWaitInMilliSeconds)
+      catch {
         case e: InterruptedException =>
           e.printStackTrace()
       }
 
-      readMessages()
+      try readMessages()
+      catch {
+        case NonFatal(e) => e.printStackTrace()
+      }
     }
   }
 
   def readMessages(): Unit = {
     val flightInfoIter = flightClient.listFlights(Criteria.ALL)
-    // if (!flightInfoIter.iterator().hasNext()) throw new Exception("No data found against any endpoint!")
+    if (flightInfoIter.iterator().hasNext) {
+      flightInfoIter.forEach { flightInfo =>
+        val endPointAsByteStream = flightInfo.getDescriptor.getPath.get(0).getBytes(StandardCharsets.UTF_8)
+        val flightStream = flightClient.getStream(new Ticket(endPointAsByteStream))
 
-    flightInfoIter.forEach { flightInfo =>
-      val endPoint = flightInfo.getDescriptor.toString
-      val endPointAsByteStream = flightInfo.getDescriptor.getPath.get(0).getBytes(StandardCharsets.UTF_8)
-      val flightStream = flightClient.getStream(new Ticket(endPointAsByteStream))
+        val vectorSchemaRootReceived = flightStream.getRoot
 
-      var batch = 0
-      val vectorSchemaRootReceived = flightStream.getRoot
-
-      while (flightStream.next()) {
-        batch = batch + 1
-        println("Client Received batch #" + batch + ", Data:")
-        println(vectorSchemaRootReceived.contentToTSVString())
-      }
-
-      // Delete already read stream
-      val deleteActionResult = flightClient.doAction(new Action("DELETE", endPointAsByteStream))
-      while (deleteActionResult.hasNext) {
-        val result = deleteActionResult.next()
-        // println("Deleting endpoint {} read already at location {}: {}", endPoint, location, new String(result.getBody, StandardCharsets.UTF_8))
+        while (flightStream.next()) {
+          println("Client Received Data:")
+          println(vectorSchemaRootReceived.contentToTSVString())
+        }
       }
     }
-
   }
 }
