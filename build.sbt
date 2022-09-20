@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .enablePlugins(OsDetectorPlugin)
   .configs(IntegrationTest)
   .settings(
-    name := "arrow-messaging",
+    name := "arrow-flight-scala",
     Defaults.itSettings,
     libraryDependencies ++= Seq(
       "io.netty"                    % "netty-transport-native-unix-common" % "4.1.72.Final" % "compile" classifier osDetectorClassifier.value,

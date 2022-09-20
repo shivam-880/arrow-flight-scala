@@ -20,16 +20,15 @@ object Main extends App {
 
   Future(reader.readMessages(1))
 
-  for (i <- 0 until 2)
-    writer.addToBatch(i, System.currentTimeMillis().toString)
-  writer.sendBatch()
-  // writer.completeSend() Not needed here if you're sending another batch to the same end point
+  val start = System.currentTimeMillis()
 
-  for (i <- 0 until 4) {
-    Thread.sleep(1000)
-    println(s"Adding to batch")
-    writer.addToBatch(i, System.currentTimeMillis().toString)
+  for (i <- 0 until 10) {
+    for (j <- 0 until 10) {
+      writer.addToBatch(j, System.currentTimeMillis().toString)
+    }
+    writer.sendBatch()
   }
-  writer.sendBatch()
   writer.completeSend()
+
+  println(s"Time taken = ${System.currentTimeMillis() - start}")
 }

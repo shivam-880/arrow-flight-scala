@@ -24,10 +24,8 @@ private[arrowflight] class ArrowFlightProducer(
         val arrowRecordBatch = unloader.getRecordBatch
         val rows = flightStream.getRoot.getRowCount
         val dataset = ArrowFlightDataset(arrowRecordBatch, flightStream.getSchema, rows)
-        if (!datasets.containsKey(flightStream.getDescriptor)) {
-          println(s"Create new blocking queue")
+        if (!datasets.containsKey(flightStream.getDescriptor))
           datasets.put(flightStream.getDescriptor, new ArrayBlockingQueue[ArrowFlightDataset](10000))
-        }
         datasets.get(flightStream.getDescriptor).put(dataset)
       }
       ackStream.onCompleted()

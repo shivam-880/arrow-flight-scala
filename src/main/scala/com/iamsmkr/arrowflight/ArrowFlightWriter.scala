@@ -36,6 +36,7 @@ case class ArrowFlightWriter(
     listener.completed()
     listener.getResult()
     listener = null
+    println(s"Completed Send")
   }
 
   def close(): Unit = {
