@@ -43,7 +43,6 @@ case class ArrowFlightReader(
         while (flightStream.next()) {
           var i = 0
           val rows = vectorSchemaRootReceived.getRowCount
-          println(s"rows = $rows")
           while (i < rows) {
             counter = counter + 1
             i = i + 1
